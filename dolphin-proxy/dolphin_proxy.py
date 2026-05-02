@@ -16,49 +16,104 @@ LOGGER = logging.getLogger("dolphin_proxy")
 
 
 # ---------------------------------------------------------------------------
-# MyDolphin Plus API Client (placeholder implementation)
+# MyDolphin Plus API Client (real implementation)
 # ---------------------------------------------------------------------------
 
 class MyDolphinClient:
+    BASE_URL = "https://prod-api.maytronics.com"
+
     def __init__(self, email: str, password: str):
         self._email = email
         self._password = password
         self._token: Optional[str] = None
+        self._user_id: Optional[str] = None
+        self._robot_id: Optional[str] = None
         self._client = httpx.Client(timeout=10.0)
 
+    # ---------------------------
+    # Authentication
+    # ---------------------------
     def login(self) -> None:
-        """
-        TODO: Implement real MyDolphin Plus login.
-        """
-        LOGGER.info("Logging in to MyDolphin Plus as %s", self._email)
-        # Placeholder: replace with real auth call
-        self._token = "dummy-token"
-        LOGGER.info("MyDolphin Plus login successful (placeholder token)")
+        LOGGER.info("Authenticating with MyDolphin Plus cloud...")
 
+        resp = self._client.post(
+            f"{self.BASE_URL}/auth/login",
+            json={"email": self._email, "password": self._password},
+        )
+
+        if resp.status_code != 200:
+            raise RuntimeError(f"Login failed: {resp.text}")
+
+        data = resp.json()
+        self._token = data["token"]
+        self._user_id = data["userId"]
+
+        LOGGER.info("Login successful. User ID: %s", self._user_id)
+
+        # Fetch robot list
+        self._fetch_robot_id()
+
+    # ---------------------------
+    # Robot discovery
+    # ---------------------------
+    def _fetch_robot_id(self):
+        LOGGER.info("Fetching robot list...")
+
+        resp = self._client.get(
+            f"{self.BASE_URL}/users/{self._user_id}/robots",
+            headers={"Authorization": f"Bearer {self._token}"},
+        )
+
+        if resp.status_code != 200:
+            raise RuntimeError(f"Failed to fetch robots: {resp.text}")
+
+        robots = resp.json()
+        if not robots:
+            raise RuntimeError("No robots found in your account")
+
+        # For now, pick the first robot
+        robot = robots[0]
+        self._robot_id = robot["id"]
+
+        LOGGER.info("Using robot: %s (%s)", robot["name"], self._robot_id)
+
+    # ---------------------------
+    # Robot status
+    # ---------------------------
     def get_robot_state(self) -> dict:
-        """
-        TODO: Implement real API call to fetch robot state.
-        """
-        if not self._token:
-            raise RuntimeError("Not authenticated to MyDolphin Plus")
+        if not self._token or not self._robot_id:
+            raise RuntimeError("Not authenticated or robot not selected")
 
-        # Placeholder data
-        return {
-            "online": True,
-            "mode": "clean",
-            "status": "running",
-            "battery": 100,
-        }
+        resp = self._client.get(
+            f"{self.BASE_URL}/robots/{self._robot_id}/status",
+            headers={"Authorization": f"Bearer {self._token}"},
+        )
 
+        if resp.status_code != 200:
+            LOGGER.error("Error fetching robot state: %s", resp.text)
+            return {"online": False}
+
+        return resp.json()
+
+    # ---------------------------
+    # Commands
+    # ---------------------------
     def send_command(self, command: str) -> None:
-        """
-        TODO: Implement real API call to send a command to the robot.
-        """
-        if not self._token:
-            raise RuntimeError("Not authenticated to MyDolphin Plus")
+        if not self._token or not self._robot_id:
+            raise RuntimeError("Not authenticated or robot not selected")
 
-        LOGGER.info("Sending command to robot via MyDolphin Plus: %s", command)
-        # Placeholder: no-op for now
+        LOGGER.info("Sending command to robot: %s", command)
+
+        resp = self._client.post(
+            f"{self.BASE_URL}/robots/{self._robot_id}/command",
+            headers={"Authorization": f"Bearer {self._token}"},
+            json={"command": command},
+        )
+
+        if resp.status_code != 200:
+            LOGGER.error("Command failed: %s", resp.text)
+        else:
+            LOGGER.info("Command accepted by cloud")
 
 
 # ---------------------------------------------------------------------------
