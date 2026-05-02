@@ -1,5 +1,11 @@
 {
   "name": "Dolphin Proxy Add-on Repository",
-  "url": "https://github.com/YOUR_USERNAME/dolphin-proxy-addon",
-  "maintainer": "shomo.sen@gmail.com"
+  "url": "https://github.com/Tuks1979/dolphin-proxy-addon",
+  "maintainer": "Tuks1979",
+  "addons": {
+    "dolphin-proxy": {
+      "name": "Dolphin MQTT Proxy",
+      "slug": "dolphin_proxy"
+    }
+  }
 }
