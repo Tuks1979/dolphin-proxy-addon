@@ -1,19 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/with-contenv bash
+set -e
 
-echo "Starting Dolphin MQTT Proxy..."
+echo "[dolphin-proxy] Starting Dolphin MQTT Proxy..."
 
-# Install Python dependencies
-pip3 install --no-cache-dir paho-mqtt requests
-
-# Run the proxy script
-python3 - << 'EOF'
-import time
-import requests
-import paho.mqtt.client as mqtt
-
-print("Dolphin MQTT Proxy running...")
-
-# Placeholder loop (replace with real logic later)
-while True:
-    time.sleep(10)
-EOF
+python3 /dolphin_proxy.py
