@@ -1,0 +1,12 @@
+{
+  "name": "Dolphin MQTT Proxy",
+  "version": "1.0.0",
+  "slug": "dolphin_proxy",
+  "description": "A local MQTT proxy for Maytronics Dolphin robots using the MyDolphin Plus cloud API.",
+  "startup": "services",
+  "boot": "auto",
+  "host_network": true,
+  "options": {},
+  "schema": {},
+  "image": "local/dolphin-proxy-{arch}"
+}
