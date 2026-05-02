@@ -15,6 +15,10 @@ logging.basicConfig(
 LOGGER = logging.getLogger("dolphin_proxy")
 
 
+# ---------------------------------------------------------------------------
+# MyDolphin Plus API Client (placeholder implementation)
+# ---------------------------------------------------------------------------
+
 class MyDolphinClient:
     def __init__(self, email: str, password: str):
         self._email = email
@@ -25,8 +29,6 @@ class MyDolphinClient:
     def login(self) -> None:
         """
         TODO: Implement real MyDolphin Plus login.
-
-        For now, we just log and pretend we have a token.
         """
         LOGGER.info("Logging in to MyDolphin Plus as %s", self._email)
         # Placeholder: replace with real auth call
@@ -59,6 +61,10 @@ class MyDolphinClient:
         # Placeholder: no-op for now
 
 
+# ---------------------------------------------------------------------------
+# MQTT Proxy
+# ---------------------------------------------------------------------------
+
 class DolphinMQTTProxy:
     def __init__(
         self,
@@ -87,7 +93,6 @@ class DolphinMQTTProxy:
     def _on_connect(self, client, userdata, flags, rc):
         if rc == 0:
             LOGGER.info("Connected to MQTT broker at %s:%s", self._mqtt_host, self._mqtt_port)
-            # Subscribe to command topic
             cmd_topic = f"{self._topic_prefix}/command"
             LOGGER.info("Subscribing to command topic: %s", cmd_topic)
             client.subscribe(cmd_topic)
@@ -142,15 +147,23 @@ class DolphinMQTTProxy:
             pass
 
 
-def main():
-    # For now, hard-coded config.
-    # Later we’ll read from /data/options.json (HA add-on options).
-    mqtt_host = "core-mosquitto"
-    mqtt_port = 1883
-    mqtt_topic_prefix = "dolphin"
+# ---------------------------------------------------------------------------
+# Main entrypoint — loads config from /data/options.json
+# ---------------------------------------------------------------------------
 
-    dolphin_email = "your-email@example.com"
-    dolphin_password = "your-password"
+def main():
+    # Load add-on options
+    with open("/data/options.json", "r") as f:
+        opts = json.load(f)
+
+    mqtt_host = opts.get("mqtt_host", "core-mosquitto")
+    mqtt_port = opts.get("mqtt_port", 1883)
+    mqtt_topic_prefix = opts.get("topic_prefix", "dolphin")
+
+    dolphin_email = opts.get("email")
+    dolphin_password = opts.get("password")
+
+    poll_interval = opts.get("poll_interval", 30)
 
     proxy = DolphinMQTTProxy(
         mqtt_host=mqtt_host,
@@ -158,7 +171,7 @@ def main():
         mqtt_topic_prefix=mqtt_topic_prefix,
         dolphin_email=dolphin_email,
         dolphin_password=dolphin_password,
-        poll_interval=30,
+        poll_interval=poll_interval,
     )
 
     try:
