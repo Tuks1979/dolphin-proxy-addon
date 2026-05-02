@@ -1,12 +1,28 @@
 {
   "name": "Dolphin MQTT Proxy",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "slug": "dolphin_proxy",
   "description": "A local MQTT proxy for Maytronics Dolphin robots using the MyDolphin Plus cloud API.",
   "startup": "services",
   "boot": "auto",
   "host_network": true,
   "arch": ["amd64", "aarch64"],
-  "options": {},
-  "schema": {}
+
+  "options": {
+    "email": "",
+    "password": "",
+    "mqtt_host": "core-mosquitto",
+    "mqtt_port": 1883,
+    "topic_prefix": "dolphin",
+    "poll_interval": 30
+  },
+
+  "schema": {
+    "email": "str",
+    "password": "str",
+    "mqtt_host": "str",
+    "mqtt_port": "int",
+    "topic_prefix": "str",
+    "poll_interval": "int"
+  }
 }
