@@ -6,6 +6,7 @@
   "startup": "services",
   "boot": "auto",
   "host_network": true,
+  "arch": ["amd64", "armv7", "aarch64"],
   "options": {},
   "schema": {},
   "image": "local/dolphin-proxy-{arch}"
